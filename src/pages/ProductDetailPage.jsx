@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { fetchProductById } from "../api/products";
+import { fetchProductById } from "../api/product";
 import ImageGallery from "../components/ImageGallery";
 
 const priceFormatter = new Intl.NumberFormat("en-US", {

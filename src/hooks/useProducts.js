@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchProducts } from "../api/products";
+import { fetchProducts } from "../api/product";
 
 export function useProducts({ search, category }) {
     const [status, setStatus] = useState("loading"); // loading | success | error

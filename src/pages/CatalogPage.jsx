@@ -1,12 +1,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useUrlState } from "../hooks/useUrlState";
+import { useUrlState } from "../hooks/UseUrlState";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useProducts } from "../hooks/useProducts";
-import { useCategories } from "../hooks/useCategories";
-import { useScrollRestoration } from "../hooks/useScrollRestoration";
-import { catalogUrlSchema } from "../urlSchema";
+import { useCategories } from "../hooks/UseCategories";
+import { useScrollRestoration } from "../hooks/UseScrollRestoration";
+import { catalogUrlSchema } from "../UrlSchema";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
 import ActiveFilterChips from "../components/ActiveFilterChips";
