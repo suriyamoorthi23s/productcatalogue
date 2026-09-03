@@ -1,16 +1,17 @@
-# React + Vite
+1. Initial build prompt
+"[Task brief pasted: search, filters, URL state, detail view, pagination, keyboard access, custom hook, README requirements] — build this as a real, working project, not a sketch, and run the build/lint before handing it back."
+→ This one prompt covered the entire initial build, including data source, hooks, pages, and components.
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+2. Build-time failure (not a prompt — something that broke)
+The first Tailwind config write failed: create_file errored because tailwind.config.js already existed from the Vite scaffold. Fixed by deleting the stub and recreating it with real design tokens instead of patching the default in place.
 
-Currently, two official plugins are available:
+3. Lint follow-up prompt (judgment call)
+"npm run lint is flagging set-state-in-effect warnings in useProducts.js and ProductDetailPage.jsx — should these be fixed or left?"
+→ Decided to leave them: standard loading-state-reset pattern, fixing would add indirection for no real gain.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+4. Correction prompt (overrode AI's first draft)
+"The detail links are carrying the full catalogue query string onto /product/:id — that's unnecessary since going back already restores the previous URL from browser history. Simplify buildDetailPath to just /product/${id}."
+→ Original draft had this redundant logic; caught it in review before asking for the fix.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+5. My own verification (not a prompt — my review process)
+Read useUrlState.js, useProducts.js, and useScrollRestoration.js line by line myself, ran build/lint personally, and manually tested the full flow (search → debounce → filter change → open product → back button → confirm filters/scroll restored)
