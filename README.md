@@ -1,16 +1,95 @@
-# React + Vite
+# Product Catalogue Browser
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A single-page product catalogue built with React, using the public
+[dummyjson.com](https://dummyjson.com/products) API. No backend, no mock data.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Requires Node 18+. Runs on Vite's default dev server (usually http://localhost:5173).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Data source
 
-## Expanding the Oxlint configuration
+Live requests to `https://dummyjson.com`. Chose the real API over a mocked
+JSON file since it already supports search and category filtering server-side,
+and its natural network latency was a more honest way to test the
+stale-response race condition than an artificial delay would be.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+`dummyjson` can't combine full-text search with a category filter in a single
+request, so when both are present, `fetchProducts` searches first (the more
+selective, user-driven input) and narrows the result to the category
+client-side. Price range, in-stock, and sorting are also applied client-side
+after the fetch — see `src/api/products.js` and `src/pages/CatalogPage.jsx`.
+
+## Handling stale responses
+
+`useProducts` (`src/hooks/useProducts.js`) keeps a `requestIdRef` that
+increments on every new fetch. When a response comes back, it's only applied
+to state if its request ID still matches the latest one issued. The previous
+in-flight request is also aborted via `AbortController` when a new one
+starts. Together this means a slow, earlier response can never overwrite a
+faster, later one — even without the abort, the stale response is silently
+dropped because its ID no longer matches.
+
+## Pagination vs infinite scroll
+
+Chose **pagination** over infinite scroll. The task requires that "browser
+back returns to the exact list state — same scroll position, same filters,
+same page." A specific page number is a much simpler, more reliable piece of
+state to store in the URL and restore than an infinite-scroll cursor or
+"items loaded so far" count, and it makes shared/refreshed URLs
+deterministic rather than approximate.
+
+## Custom hooks
+
+- **`useDebouncedValue(value, delay)`** — generic debounce hook, not tied to
+  search. Reused for the search input AND both price range inputs.
+- **`useUrlState(schema)`** — reusable URL-as-state hook. Takes a schema of
+  keys with defaults/parsers/serializers and returns `[state, setState]`
+  backed by `useSearchParams`. Not specific to this catalogue — could sync
+  any form/filter state to the URL.
+- **`useScrollRestoration(key, ready)`** — reusable scroll-position hook
+  keyed to any string (here, the URL path+query) and gated by a "ready" flag
+  so it doesn't restore onto skeleton loaders.
+- `useProducts` and `useCategories` are more page-specific data-fetching hooks.
+
+## Memoization
+
+- `ProductCard` is wrapped in `memo` — the grid can re-render on unrelated
+  state (e.g. a filter input typed but not yet debounced) without
+  re-rendering every card.
+- The filtered/sorted product list and the current page slice are computed
+  in `useMemo`, keyed to the specific filter/sort/page values that affect
+  them, so a typed-but-not-yet-applied input doesn't recompute the full list.
+
+## Accessibility
+
+- All filters are native `<select>`, `<input>`, and `<button>` elements —
+  tab order follows DOM order.
+- Cards are real links (`react-router-dom` `Link`), so Enter opens them
+  natively.
+- Escape on the detail view calls `navigate(-1)`, returning through browser
+  history rather than a fresh navigation — this is also what makes scroll
+  position and filters restore correctly.
+
+## Out of scope (per task)
+
+Auth, cart, checkout, a real backend, automated tests, dark mode.
+
+## What I'd change with more time
+
+- Commit granularity: early development commits were made periodically
+  rather than one-per-feature, and a few files were duplicated under
+  different casing (fixed in a later commit — see history). With more time
+  I'd commit per-feature from the start (search, filters, URL sync, detail
+  view, accessibility) and run a case-sensitivity check earlier.
+- Add automated tests for the stale-response race condition and URL state
+  round-tripping specifically, since those are the hardest parts to verify
+  by hand.
+- Debounce the price range inputs' *effect on fetch* separately from their
+  effect on the URL, so typing a price doesn't cause a URL replace on every
+  keystroke pause even when it doesn't change the result set.

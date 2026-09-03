@@ -1,9 +1,12 @@
-function App() {
+import { Route, Routes } from "react-router-dom";
+import CatalogPage from "./pages/CatalogPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+
+export default function App() {
   return (
-    <div>
-      <h1>Product Catalogue</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<CatalogPage />} />
+      <Route path="/product/:id" element={<ProductDetailPage />} />
+    </Routes>
   );
 }
-
-export default App;
